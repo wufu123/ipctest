@@ -4,19 +4,19 @@ import SwiftUI
 struct HistoryView: View {
     @EnvironmentObject private var store: WaterStore
 
-    private var groupedRecords: [(date: Date, records: [DrinkRecord])] {
+    private var groupedRecords: [DailyGroup] {
         let grouped = Dictionary(grouping: store.records) { record in
             Calendar.current.startOfDay(for: record.date)
         }
         return grouped
-            .map { (date: $0.key, records: $0.value.sorted { $0.date > $1.date }) }
+            .map { DailyGroup(date: $0.key, records: $0.value.sorted { $0.date > $1.date }) }
             .sorted { $0.date > $1.date }
     }
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(groupedRecords, id: \.date) { group in
+                ForEach(groupedRecords) { group in
                     Section {
                         ForEach(group.records) { record in
                             HStack {
@@ -63,4 +63,11 @@ struct HistoryView: View {
             store.delete(records[index])
         }
     }
+}
+
+/// 按日期分组的历史记录
+private struct DailyGroup: Identifiable {
+    let date: Date
+    let records: [DrinkRecord]
+    var id: Date { date }
 }
